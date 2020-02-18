@@ -7,6 +7,7 @@ public class Contacto {
     private String nombre;
     private String email;
 
+    public Contacto(){} //avoid json error
     public Contacto(String nombre, String email) {
         this.nombre = nombre;
         this.email = email;

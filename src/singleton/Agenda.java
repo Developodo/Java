@@ -1,5 +1,7 @@
 package singleton;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +21,14 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+
+//OJO https://github.com/FasterXML/jackson
+//http://tutorials.jenkov.com/java-json/jackson-installation.html
+//https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.8.11
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Agenda {
 
     private static Agenda instance;
@@ -30,8 +40,14 @@ public class Agenda {
 
     private Agenda(String url) {
         contactos = new ArrayList<>();
+        
         if (url != null) {
-            fromXML(url);
+            if(url.toLowerCase().endsWith(".json")){
+                fromJSON(url);
+            }else if(url.toLowerCase().endsWith(".xml")){
+                fromXML(url);
+            }
+            
         }
     }
 
@@ -70,15 +86,22 @@ public class Agenda {
         return result;
     }
 
+    @Override
     public String toString() {
         String result = "";
+        /*this.contactos.forEach((c)->{
+            
+        });*/
         for (Contacto c : this.contactos) {
             result += " > " + c + "\n";
         }
+       
+        //result = this.contactos.stream().map((c) -> " > " + c + "\n").reduce(result, String::concat);
+
         return result;
     }
 
-    public void toXML() {
+    public void toXML(String file) {
         try {
             DocumentBuilderFactory dFact = DocumentBuilderFactory.newInstance();
             DocumentBuilder build;
@@ -120,7 +143,7 @@ public class Agenda {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
             DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File("agenda.xml"));
+            StreamResult result = new StreamResult(new File(file));
 
             transformer.transform(source, result);  //EXC
         } catch (TransformerException ex) {
@@ -165,5 +188,26 @@ public class Agenda {
             System.out.println(ex);
         }
 
+    }
+    
+    public void toJSON(String file){
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.writeValue(new File(file), contactos);
+            // Java objects to JSON string - pretty-print
+            //String jsonInString2 = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(staff);
+        } catch (IOException ex) {
+            System.out.println(ex);
+        }
+    }
+    public void fromJSON(String file){
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            contactos.clear();
+            JsonNode _contactos = mapper.readValue(new File(file), JsonNode.class); //if not know 
+            contactos= mapper.convertValue(_contactos, new TypeReference<ArrayList<Contacto>>(){});
+        } catch (IOException ex) {
+            System.out.println(ex);
+        }
     }
 }
