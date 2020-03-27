@@ -1,0 +1,5 @@
+PC, 1200
+Portatil, 500
+Movil, 700
+Tablet, 1000
+
